@@ -1,0 +1,249 @@
+openapi: "3.0.3"
+info:
+  title: SkyRoute Travel Booking API
+  description: >-
+    SkyRoute is a travel booking platform. It offers tools to search flights,
+    book flights, manage bookings, search hotels, and check flight status.
+    Typical users are travelers planning trips.
+  version: "1.0.0"
+
+paths:
+  /flights:
+    get:
+      operationId: search_flights
+      summary: Search for available flights between two airports
+      tags: [flights]
+      parameters:
+        - name: departure
+          in: query
+          required: true
+          schema: { type: string }
+          description: Departure airport IATA code
+        - name: arrival
+          in: query
+          required: true
+          schema: { type: string }
+          description: Arrival airport IATA code
+        - name: date
+          in: query
+          required: true
+          schema: { type: string }
+          description: Departure date (YYYY-MM-DD)
+        - name: max_stops
+          in: query
+          required: false
+          schema: { type: integer }
+          description: Maximum number of stops
+        - name: cabin_class
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [economy, business, first]
+          description: Cabin class preference
+      responses:
+        "200":
+          description: List of matching flights
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  flights:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Flight"
+
+  /flights/{flight_id}/book:
+    post:
+      operationId: book_flight
+      summary: Book a specific flight
+      tags: [flights]
+      parameters:
+        - name: flight_id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                passenger_name: { type: string }
+                email: { type: string }
+                seat_preference:
+                  type: string
+                  enum: [window, aisle, middle]
+              required: [passenger_name, email]
+      responses:
+        "201":
+          description: Booking confirmation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+
+  /bookings/{booking_id}:
+    get:
+      operationId: get_booking
+      summary: Get details of an existing booking
+      tags: [bookings]
+      parameters:
+        - name: booking_id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Booking details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+
+  /bookings/{booking_id}/cancel:
+    post:
+      operationId: cancel_booking
+      summary: Cancel an existing booking
+      tags: [bookings]
+      parameters:
+        - name: booking_id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Cancellation confirmation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string }
+                  refund_amount: { type: number }
+
+  /hotels:
+    get:
+      operationId: search_hotels
+      summary: Search for hotels in a city
+      tags: [hotels]
+      parameters:
+        - name: city
+          in: query
+          required: true
+          schema: { type: string }
+          description: City name or code
+        - name: check_in
+          in: query
+          required: true
+          schema: { type: string }
+          description: Check-in date (YYYY-MM-DD)
+        - name: check_out
+          in: query
+          required: true
+          schema: { type: string }
+          description: Check-out date (YYYY-MM-DD)
+        - name: guests
+          in: query
+          required: false
+          schema: { type: integer }
+        - name: max_price
+          in: query
+          required: false
+          schema: { type: number }
+      responses:
+        "200":
+          description: List of matching hotels
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  hotels:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Hotel"
+
+  /flights/{flight_id}/status:
+    get:
+      operationId: check_flight_status
+      summary: Check the current status of a flight
+      tags: [flights]
+      parameters:
+        - name: flight_id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Current flight status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  flight_id: { type: string }
+                  status:
+                    type: string
+                    enum: [on_time, delayed, cancelled, landed]
+                  delay_minutes: { type: integer }
+
+  /airports:
+    get:
+      operationId: list_airports
+      summary: List available airports
+      tags: [airports]
+      parameters:
+        - name: country
+          in: query
+          required: false
+          schema: { type: string }
+          description: Filter by country code
+      responses:
+        "200":
+          description: List of airports
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  airports:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code: { type: string }
+                        name: { type: string }
+                        city: { type: string }
+                        country: { type: string }
+
+components:
+  schemas:
+    Flight:
+      type: object
+      properties:
+        id: { type: string }
+        airline: { type: string }
+        price: { type: number }
+        departure_time: { type: string }
+        arrival_time: { type: string }
+        stops: { type: integer }
+
+    Booking:
+      type: object
+      properties:
+        booking_id: { type: string }
+        flight_id: { type: string }
+        status: { type: string }
+        passenger_name: { type: string }
+
+    Hotel:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        price_per_night: { type: number }
+        rating: { type: number }
+        address: { type: string }

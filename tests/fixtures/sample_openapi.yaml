@@ -1,0 +1,130 @@
+openapi: "3.0.3"
+info:
+  title: SkyRoute Travel API
+  description: A travel booking API for searching and booking flights and hotels.
+  version: "1.0.0"
+
+paths:
+  /flights:
+    get:
+      operationId: search_flights
+      summary: Search for available flights
+      tags:
+        - flights
+      parameters:
+        - name: departure
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Departure airport IATA code
+        - name: arrival
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Arrival airport IATA code
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Departure date (YYYY-MM-DD)
+        - name: max_stops
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Maximum number of stops
+      responses:
+        "200":
+          description: List of matching flights
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  flights:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Flight"
+
+  /flights/{flight_id}/book:
+    post:
+      operationId: book_flight
+      summary: Book a flight
+      tags:
+        - flights
+      parameters:
+        - name: flight_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                passenger_name:
+                  type: string
+                email:
+                  type: string
+              required:
+                - passenger_name
+                - email
+      responses:
+        "201":
+          description: Booking confirmation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+
+  /bookings/{booking_id}:
+    get:
+      operationId: get_booking
+      summary: Get booking details
+      tags:
+        - bookings
+      parameters:
+        - name: booking_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Booking details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+
+components:
+  schemas:
+    Flight:
+      type: object
+      properties:
+        id:
+          type: string
+        airline:
+          type: string
+        price:
+          type: number
+        departure_time:
+          type: string
+
+    Booking:
+      type: object
+      properties:
+        booking_id:
+          type: string
+        flight_id:
+          type: string
+        status:
+          type: string
+        passenger_name:
+          type: string

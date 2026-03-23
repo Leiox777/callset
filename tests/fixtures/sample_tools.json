@@ -1,0 +1,83 @@
+[
+  {
+    "name": "search_flights",
+    "description": "Search for available flights between two airports",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "departure_city": {
+          "type": "string",
+          "description": "IATA airport code"
+        },
+        "arrival_city": {
+          "type": "string",
+          "description": "IATA airport code"
+        },
+        "date": {
+          "type": "string",
+          "description": "Departure date in YYYY-MM-DD format"
+        }
+      },
+      "required": ["departure_city", "arrival_city", "date"]
+    },
+    "response_schema": {
+      "type": "object",
+      "properties": {
+        "flights": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {"type": "string"},
+              "airline": {"type": "string"},
+              "price": {"type": "number"},
+              "departure": {"type": "string"}
+            }
+          }
+        }
+      }
+    },
+    "tags": ["flights"]
+  },
+  {
+    "name": "book_flight",
+    "description": "Book a specific flight",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "flight_id": {
+          "type": "string",
+          "description": "The flight ID to book"
+        },
+        "passenger_name": {
+          "type": "string",
+          "description": "Full name of the passenger"
+        }
+      },
+      "required": ["flight_id", "passenger_name"]
+    },
+    "response_schema": {
+      "type": "object",
+      "properties": {
+        "booking_id": {"type": "string"},
+        "status": {"type": "string"}
+      }
+    },
+    "tags": ["flights"]
+  },
+  {
+    "name": "get_booking",
+    "description": "Get details of an existing booking",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "booking_id": {
+          "type": "string",
+          "description": "The booking ID"
+        }
+      },
+      "required": ["booking_id"]
+    },
+    "tags": ["bookings"]
+  }
+]
