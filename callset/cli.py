@@ -63,13 +63,14 @@ def _parse_distribution(value: str) -> dict[ExampleType, int]:
 @click.option("--seed", "random_seed", default=None, type=int, help="Random seed for reproducibility")
 @click.option("--verbose", is_flag=True, help="Print progress and validation details")
 @click.option("--dry-run", is_flag=True, help="Parse spec and show inferred context without generating")
+@click.option("--export-tools", "export_tools_path", default=None, type=click.Path(), help="Export parsed tools as OpenAI-format JSON and exit")
 @click.option("--system-prompt", default=None, type=str, help="Custom system prompt for the assistant")
 @click.option("--personas", default=None, type=str, help="Comma-separated user persona descriptions")
 @click.option("--workers", default=1, type=int, help="Number of parallel threads for generation (default: 1)")
 def main(
     spec_path, tools_path, examples, distribution, output, fmt,
     provider, model, api_key, strict, max_retries, random_seed,
-    verbose, dry_run, system_prompt, personas, workers,
+    verbose, dry_run, export_tools_path, system_prompt, personas, workers,
 ):
     """Generate validated tool-calling training data from API specifications."""
     # Configure logging
@@ -108,6 +109,25 @@ def main(
 
     # Parse distribution
     dist = _parse_distribution(distribution) if distribution else DEFAULT_DISTRIBUTION
+
+    # Export tools as OpenAI-format JSON and exit
+    if export_tools_path:
+        tool_defs = []
+        for t in tools:
+            tool_def = {
+                "type": "function",
+                "function": {
+                    "name": t.name,
+                    "description": t.description,
+                    "parameters": t.parameters,
+                },
+            }
+            tool_defs.append(tool_def)
+        export_path = Path(export_tools_path)
+        with open(export_path, "w", encoding="utf-8") as f:
+            json.dump(tool_defs, f, indent=2, ensure_ascii=False)
+        console.print(f"[bold green]Exported {len(tool_defs)} tools to {export_path}[/bold green]")
+        return
 
     # Dry run: show context and exit
     if dry_run:

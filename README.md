@@ -116,6 +116,7 @@ Other:
   --seed INT               Random seed for reproducibility
   --verbose                Print progress and validation details
   --dry-run                Parse spec and show context without generating
+  --export-tools PATH      Export parsed tools as OpenAI-format JSON and exit
 ```
 
 ## Examples
@@ -135,6 +136,9 @@ callset --spec api.yaml --seed 42 --verbose --max-retries 3
 
 # Strict validation
 callset --spec api.yaml --strict --examples 200
+
+# Export parsed tools as OpenAI-format JSON (no generation, no API key needed)
+callset --spec api.yaml --export-tools tools.json
 ```
 
 ## Sample Output
