@@ -109,6 +109,9 @@ Validation:
   --strict                 Reject examples with warnings
   --max-retries INT        Max regeneration attempts per failed example (default: 2)
 
+Performance:
+  --workers INT            Parallel threads for generation (default: 1)
+
 Other:
   --seed INT               Random seed for reproducibility
   --verbose                Print progress and validation details
@@ -132,6 +135,67 @@ callset --spec api.yaml --seed 42 --verbose --max-retries 3
 
 # Strict validation
 callset --spec api.yaml --strict --examples 200
+```
+
+## Sample Output
+
+Each line in the output JSONL is a complete conversation. Here's a happy path example (formatted for readability):
+
+```json
+{
+  "messages": [
+    {"role": "system", "content": "You are a helpful travel assistant."},
+    {"role": "user", "content": "I need a flight from Paris to Tokyo on March 15th."},
+    {"role": "assistant", "content": null, "tool_calls": [
+      {
+        "id": "call_1",
+        "type": "function",
+        "function": {
+          "name": "search_flights",
+          "arguments": "{\"departure\": \"CDG\", \"arrival\": \"NRT\", \"date\": \"2026-03-15\"}"
+        }
+      }
+    ]},
+    {"role": "tool", "tool_call_id": "call_1", "content": "{\"flights\": [{\"flight_id\": \"FL-9281\", \"airline\": \"Air France\", \"price\": 847.00, \"departure_time\": \"10:30\", \"arrival_time\": \"06:45+1\"}]}"},
+    {"role": "assistant", "content": "I found a flight from CDG to NRT on March 15th. Air France FL-9281 departs at 10:30 and arrives at 06:45 the next day for $847. Would you like to book it?"}
+  ]
+}
+```
+
+And a multi-step example where the user searches, then books:
+
+```json
+{
+  "messages": [
+    {"role": "system", "content": "You are a helpful travel assistant."},
+    {"role": "user", "content": "Find me hotels in Berlin for next weekend."},
+    {"role": "assistant", "content": null, "tool_calls": [
+      {
+        "id": "call_1",
+        "type": "function",
+        "function": {
+          "name": "search_hotels",
+          "arguments": "{\"location\": \"Berlin\", \"check_in\": \"2026-03-28\", \"check_out\": \"2026-03-30\"}"
+        }
+      }
+    ]},
+    {"role": "tool", "tool_call_id": "call_1", "content": "{\"hotels\": [{\"hotel_id\": \"H-4820\", \"name\": \"Hotel Adlon\", \"price_per_night\": 195.00}, {\"hotel_id\": \"H-7731\", \"name\": \"Motel One\", \"price_per_night\": 79.00}]}"},
+    {"role": "assistant", "content": "I found 2 options in Berlin for March 28-30:\n1. Hotel Adlon - $195/night\n2. Motel One - $79/night\nWhich one would you like to book?"},
+    {"role": "user", "content": "Book the Motel One please."},
+    {"role": "assistant", "content": null, "tool_calls": [
+      {
+        "id": "call_2",
+        "type": "function",
+        "function": {
+          "name": "book_hotel",
+          "arguments": "{\"hotel_id\": \"H-7731\", \"check_in\": \"2026-03-28\", \"check_out\": \"2026-03-30\"}"
+        }
+      }
+    ]},
+    {"role": "tool", "tool_call_id": "call_2", "content": "{\"booking_id\": \"BK-19204\", \"status\": \"confirmed\", \"total\": 158.00}"},
+    {"role": "assistant", "content": "Your booking at Motel One is confirmed! Booking ID: BK-19204, total: $158.00 for 2 nights. Enjoy Berlin!"}
+  ]
+}
 ```
 
 ## Validation

@@ -56,6 +56,8 @@ def _build_parameters_schema(
         name = param["name"]
         schema = param.get("schema", {"type": "string"})
         schema = _resolve_refs_deep(schema, spec)
+        if "description" not in schema and "description" in param:
+            schema["description"] = param["description"]
         properties[name] = schema
         if param.get("required", False):
             required.append(name)

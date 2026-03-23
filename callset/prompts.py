@@ -64,6 +64,9 @@ Rules:
 - The user message should sound natural, not like a command to call a function
 - The assistant should decide when to call tools based on the conversation, not be told to
 - Tool call arguments must exactly match the parameter names and types in the tool definitions
+- When a parameter description indicates a specific format (e.g. "IATA code", "YYYY-MM-DD", "ISO 8601"), arguments MUST use that format, not a natural language equivalent. Use "CDG" not "Paris".
+- Only include optional parameters in tool call arguments if the user explicitly mentioned them or they can be directly inferred from the user's words. Do NOT invent default values for optional parameters.
+- Use dates in the near future (2026-2027) for all generated examples
 - Simulate realistic tool results based on the response schema provided
 - The assistant's final response should naturally incorporate the tool result
 - {type_specific_rules}
@@ -76,16 +79,21 @@ TYPE_RULES: dict[ExampleType, str] = {
         "information for the assistant to call a tool immediately."
     ),
     ExampleType.MULTI_STEP: (
-        "This requires multiple sequential tool calls. One tool's result should "
-        "inform the next tool call's arguments."
+        "This requires at least 2 tool calls in separate assistant messages. "
+        "The second tool call MUST use information from the first tool's result. "
+        "The user should respond between tool calls (e.g., confirming a selection). "
+        "Example flow: user asks → assistant searches → results → user picks one → "
+        "assistant books with the selected ID → assistant summarizes."
     ),
     ExampleType.CLARIFICATION: (
         "The user's initial message is vague or missing required parameters. "
         "The assistant must ask for clarification before making any tool call."
     ),
     ExampleType.ERROR: (
-        "The tool call returns an error or empty result. The assistant should "
-        "handle it gracefully and suggest alternatives."
+        "The tool result MUST contain an error indicator (error field, empty result set, "
+        "or HTTP-style error message). Do NOT simulate a successful result. "
+        "The assistant MUST acknowledge the error and suggest an alternative or ask "
+        "the user to correct their input."
     ),
     ExampleType.REFUSAL: (
         "The user asks for something outside the API's capabilities. The assistant "

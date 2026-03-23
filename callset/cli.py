@@ -65,10 +65,11 @@ def _parse_distribution(value: str) -> dict[ExampleType, int]:
 @click.option("--dry-run", is_flag=True, help="Parse spec and show inferred context without generating")
 @click.option("--system-prompt", default=None, type=str, help="Custom system prompt for the assistant")
 @click.option("--personas", default=None, type=str, help="Comma-separated user persona descriptions")
+@click.option("--workers", default=1, type=int, help="Number of parallel threads for generation (default: 1)")
 def main(
     spec_path, tools_path, examples, distribution, output, fmt,
     provider, model, api_key, strict, max_retries, random_seed,
-    verbose, dry_run, system_prompt, personas,
+    verbose, dry_run, system_prompt, personas, workers,
 ):
     """Generate validated tool-calling training data from API specifications."""
     # Configure logging
@@ -131,6 +132,7 @@ def main(
         strict=strict,
         system_prompt=system_prompt,
         verbose=verbose,
+        workers=workers,
     )
 
     # Step 7: Format and write output
@@ -194,6 +196,13 @@ def _print_stats(stats):
     rate = stats["passed"] / max(total, 1) * 100
     table.add_row("Pass Rate", f"{rate:.1f}%")
     console.print(table)
+
+    if stats.get("type_counts"):
+        total_passed = stats["passed"]
+        console.print("\n[bold]Example distribution:[/bold]")
+        for etype, count in sorted(stats["type_counts"].items()):
+            pct = count / max(total_passed, 1) * 100
+            console.print(f"  {etype}: {count} ({pct:.1f}%)")
 
     if stats["failure_reasons"]:
         console.print("\n[bold]Failure reasons:[/bold]")

@@ -143,7 +143,7 @@ class TestSemanticValidator:
         assert not result.valid
         assert any("Refusal" in e for e in result.errors)
 
-    def test_clarification_warns_if_no_question(self):
+    def test_clarification_errors_if_no_question(self):
         # Assistant directly calls tool without asking first
         conv = {
             "messages": [
@@ -156,7 +156,8 @@ class TestSemanticValidator:
             ]
         }
         result = validate_semantic(conv, "clarification")
-        assert len(result.warnings) > 0
+        assert not result.valid
+        assert any("clarifying question" in e or "2 user turns" in e for e in result.errors)
 
 
 class TestCombinedValidator:

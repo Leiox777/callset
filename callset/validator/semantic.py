@@ -26,6 +26,8 @@ def validate_semantic(conversation: dict, example_type: str) -> ValidationResult
 
     # Type-specific checks
     if example_type == "clarification":
+        if len(user_indices) < 2:
+            errors.append("Clarification example must have at least 2 user turns")
         # Assistant should have a non-tool-call message before any tool call
         assistant_no_tool = [
             i for i, m in enumerate(messages)
@@ -33,13 +35,17 @@ def validate_semantic(conversation: dict, example_type: str) -> ValidationResult
         ]
         if tool_call_indices and assistant_no_tool:
             if assistant_no_tool[0] > tool_call_indices[0]:
-                warnings.append(
-                    "Clarification example: assistant should ask a question before making tool calls"
+                errors.append(
+                    "Clarification example: assistant must ask a question before making tool calls"
                 )
         elif tool_call_indices and not assistant_no_tool:
-            warnings.append(
+            errors.append(
                 "Clarification example: assistant never asks a clarifying question"
             )
+
+    if example_type == "multi_step":
+        if len(tool_call_indices) < 2:
+            errors.append("Multi-step example must contain at least 2 tool calls")
 
     if example_type == "refusal":
         # Should NOT have any tool calls
