@@ -4,22 +4,31 @@ Generate validated tool-calling training data from API specifications. Provide a
 
 ## Installation
 
-```bash
-pip install callset                  # OpenAI provider only
-pip install callset[anthropic]       # With Anthropic support
-pip install -e .                     # Development install
-```
-
 Requires Python >= 3.10.
+
+```bash
+git clone <repo-url>
+cd callset
+pip install -e .                     # OpenAI provider only
+pip install -e ".[anthropic]"        # With Anthropic support
+```
 
 ## Quick Start
 
 Set your API key:
 
 ```bash
+# Linux / macOS
 export OPENAI_API_KEY=sk-...
-# or
 export ANTHROPIC_API_KEY=sk-ant-...
+
+# Windows (cmd)
+set OPENAI_API_KEY=sk-...
+set ANTHROPIC_API_KEY=sk-ant-...
+
+# Windows (PowerShell)
+$env:OPENAI_API_KEY="sk-..."
+$env:ANTHROPIC_API_KEY="sk-ant-..."
 ```
 
 Generate a dataset:
