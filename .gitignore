@@ -13,3 +13,4 @@ venv/
 !openAPI-examples/**
 .pytest_cache/
 .mypy_cache/
+specs/
